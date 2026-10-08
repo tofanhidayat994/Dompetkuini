@@ -1,0 +1,19 @@
+<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cek Dompetku</title>
+<style>body{font-family:system-ui,sans-serif;max-width:640px;margin:24px auto;padding:0 16px;color:#0F1F17}h1{font-size:20px}li{margin:8px 0;line-height:1.4}.ok{color:#0A7040;font-weight:700}.no{color:#C62828;font-weight:700}code{background:#eef3f0;padding:2px 5px;border-radius:5px;word-break:break-all}</style></head><body>
+<h1>Pemeriksaan file Dompetku</h1><p>Alamat folder ini: <code id="base"></code></p><ul id="out"><li>Memeriksa…</li></ul>
+<p style="font-size:13px;color:#566">Semua baris harus berawalan ✓. Baris ✗ berarti file itu belum terunggah ke GitHub atau namanya salah (huruf besar/kecil berpengaruh).</p>
+<script>
+const out=document.getElementById('out'),base=new URL('./',location.href);document.getElementById('base').textContent=base.href;
+const row=(ok,t)=>{const li=document.createElement('li');li.innerHTML='<span class="'+(ok?'ok':'no')+'">'+(ok?'✓':'✗')+'</span> '+t;out.appendChild(li)};
+(async()=>{out.innerHTML='';
+ for(const f of ['index.html','manifest.json','sw.js','icon-192.png','icon-512.png','maskable-512.png']){
+  try{const r=await fetch(f,{cache:'no-store'});row(r.ok,'<code>'+f+'</code> — '+(r.ok?'ada':'HTTP '+r.status+' (tidak ditemukan)'))}catch(e){row(false,'<code>'+f+'</code> — gagal dibuka')}}
+ try{const m=await (await fetch('manifest.json',{cache:'no-store'})).json();
+  row(!!m.name&&!!m.short_name,'Manifest: nama <code>'+(m.name||'-')+'</code>');
+  row((m.icons||[]).some(i=>/512x512/.test(i.sizes)&&i.type==='image/png'),'Manifest: ada ikon PNG 512x512');
+  for(const i of (m.icons||[])){await new Promise(res=>{const im=new Image();im.onload=()=>{row(true,'Ikon <code>'+i.src+'</code> terbaca ('+im.naturalWidth+'×'+im.naturalHeight+')');res()};im.onerror=()=>{row(false,'Ikon <code>'+i.src+'</code> TIDAK terbaca');res()};im.src=i.src+'?'+Date.now()})}
+ }catch(e){row(false,'Manifest tidak bisa dibaca sebagai JSON')}
+ row(location.protocol==='https:','Memakai HTTPS');
+ if('serviceWorker' in navigator){try{const reg=await navigator.serviceWorker.register('sw.js');await navigator.serviceWorker.ready;row(true,'Service worker terpasang (scope <code>'+reg.scope+'</code>)')}catch(e){row(false,'Service worker gagal terpasang: '+e.message)}}else row(false,'Browser tidak mendukung service worker');
+})();
+</script></body></html>
